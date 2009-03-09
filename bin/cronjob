@@ -155,7 +155,6 @@ sub send_cronjob_report {
   require Email::Simple;
   require Email::Simple::Creator;
   require Email::Sender::Transport::Sendmail;
-  require ICG::Sendmail;
   require Text::Template;
 
   my $body     = Text::Template->fill_this_in(
