@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+# ABSTRACT: wrap up programs to be run as cron jobs
 
 use Digest::MD5 qw(md5_hex);
 use Errno;
@@ -27,25 +28,6 @@ my ($opt, $usage) = describe_options(
 );
 
 my $TEMPLATE;
-BEGIN {
-$TEMPLATE = <<'END_TEMPLATE';
-Command: { $command }
-Time   : { $time }s
-Status : { String::Flogger->flog([ '%s', \%waitpid ]) }
-
-Output :
-
-{ $output || '(no output)' }
-END_TEMPLATE
-}
-
-{
-  package X::Cronjob;
-  sub new {
-    my ($class, $type, $text) = @_;
-    bless { text => $text, type => $type } => $class;
-  }
-}
 
 my $subject = $opt->{subject} || $opt->{command};
    $subject =~ s{\A/\S+/([^/]+)(\s|$)}{$1$2} if $subject eq $opt->{command};
@@ -189,4 +171,37 @@ sub send_cronjob_report {
     }
   );
 }
+
+BEGIN {
+$TEMPLATE = <<'END_TEMPLATE';
+Command: { $command }
+Time   : { $time }s
+Status : { String::Flogger->flog([ '%s', \%waitpid ]) }
+
+Output :
+
+{ $output || '(no output)' }
+END_TEMPLATE
+}
+
+{
+  package X::Cronjob;
+  sub new {
+    my ($class, $type, $text) = @_;
+    bless { text => $text, type => $type } => $class;
+  }
+}
+__END__
+
+=head1 SYNOPSIS
+
+cronjob [-cEfjrs] [long options...]
+  -c --command          command to run (passed to ``)
+  -s --subject          subject of mail to send (defaults to command)
+  -r --rcpt             recipient of mail; may be given many times
+  -E --errors-only      do not send mail if exit code 0, even with output
+  -f --sender           sender for message
+  -j --jobname          job name; used for locking, if given
+  --ignore-errors       error types to ignore (like: lock)
+  --lock                lock this job (defaults to true; --no-lock for off)
 
