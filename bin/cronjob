@@ -130,6 +130,20 @@ if (eval { $err->isa('X::Cronjob'); }) {
   exit 0;
 }
 
+sub __config {
+  my @config = grep { /\S/ } `cat /etc/cronjob 2>/dev/null`;
+  chomp @config;
+
+  my ($sendmail_line) = grep { /^sendmail/ } @config;
+
+  return unless $sendmail_line =~ /^sendmail\s*= (\S+)$/;
+  my $sendmail = $1;
+
+  return {
+    ($sendmail ? (sendmail => $1) : ()),
+  }
+}
+
 sub send_cronjob_report {
   my ($arg) = @_;
   my $waitpid = $arg->{waitpid} || { no_result => 'never ran' };
@@ -163,7 +177,10 @@ sub send_cronjob_report {
     ],
   );
 
-  Email::Sender::Transport::Sendmail->new->send(
+  # no, this is now how it will work forever
+  my $config = __config;
+
+  Email::Sender::Transport::Sendmail->new($config)->send(
     $email,
     {
       to      => $rcpts,
@@ -195,13 +212,13 @@ __END__
 
 =head1 SYNOPSIS
 
-cronjob [-cEfjrs] [long options...]
-  -c --command          command to run (passed to ``)
-  -s --subject          subject of mail to send (defaults to command)
-  -r --rcpt             recipient of mail; may be given many times
-  -E --errors-only      do not send mail if exit code 0, even with output
-  -f --sender           sender for message
-  -j --jobname          job name; used for locking, if given
-  --ignore-errors       error types to ignore (like: lock)
-  --lock                lock this job (defaults to true; --no-lock for off)
+  cronjob [-cEfjrs] [long options...]
+    -c --command          command to run (passed to ``)
+    -s --subject          subject of mail to send (defaults to command)
+    -r --rcpt             recipient of mail; may be given many times
+    -E --errors-only      do not send mail if exit code 0, even with output
+    -f --sender           sender for message
+    -j --jobname          job name; used for locking, if given
+    --ignore-errors       error types to ignore (like: lock)
+    --lock                lock this job (defaults to true; --no-lock for off)
 
