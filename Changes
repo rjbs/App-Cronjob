@@ -1,4 +1,8 @@
 Revision history for App-Cronjob
 
+1.002     2009-04-21
+          moved logic to App::Cronjob (not reusable yet; awful)
+          fix bug where output caused "FAIL" label instead of just mail
+
 1.000     2009-03-08
           first release with Pobox-specific guts replaced with free guts
