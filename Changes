@@ -1,5 +1,8 @@
 Revision history for App-Cronjob
 
+1.003     2009-04-21
+          fix a moronic bug whereby -> closed a q< string
+
 1.002     2009-04-21
           moved logic to App::Cronjob (not reusable yet; awful)
           fix bug where output caused "FAIL" label instead of just mail
