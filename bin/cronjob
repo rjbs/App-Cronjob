@@ -136,7 +136,7 @@ sub __config {
 
   my ($sendmail_line) = grep { /^sendmail/ } @config;
 
-  return unless $sendmail_line =~ /^sendmail\s*= (\S+)$/;
+  return unless $sendmail_line and $sendmail_line =~ /^sendmail\s*= (\S+)$/;
   my $sendmail = $1;
 
   return {
