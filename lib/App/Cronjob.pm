@@ -196,7 +196,9 @@ sub send_cronjob_report {
 }
 
 BEGIN {
-$TEMPLATE = <<'END_TEMPLATE';
+# Sure, a here-doc would be nicer, but PPI hates here-docs, I use PodPurler,
+# and PodPurler uses PPI.  Oh well. -- rjbs, 2009-04-21
+$TEMPLATE = q<
 Command: { $command }
 Time   : { $time }s
 Status : { String::Flogger->flog([ '%s', \%waitpid ]) }
@@ -204,7 +206,7 @@ Status : { String::Flogger->flog([ '%s', \%waitpid ]) }
 Output :
 
 { $output || '(no output)' }
-END_TEMPLATE
+>
 }
 
 {
