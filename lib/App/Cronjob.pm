@@ -14,8 +14,19 @@ use Sys::Hostname::Long;
 use Text::Template;
 use Time::HiRes ();
 
+my $TEMPLATE;
+
+my (
+  $opt,
+  $usage,
+  $subject,
+  $rcpts,
+  $host,
+  $sender,
+);
+
 sub run {
-  my ($opt, $usage) = describe_options(
+  ($opt, $usage) = describe_options(
     '%c %o',
      [ 'command|c=s',   'command to run (passed to ``)', { required => 1 }   ],
      [ 'subject|s=s',   'subject of mail to send (defaults to command)'      ],
@@ -28,16 +39,14 @@ sub run {
                         { default => 1 }                                     ],
   );
 
-  my $TEMPLATE;
+  $subject = $opt->{subject} || $opt->{command};
+  $subject =~ s{\A/\S+/([^/]+)(\s|$)}{$1$2} if $subject eq $opt->{command};
 
-  my $subject = $opt->{subject} || $opt->{command};
-     $subject =~ s{\A/\S+/([^/]+)(\s|$)}{$1$2} if $subject eq $opt->{command};
+  $rcpts   = $opt->{rcpt}
+          || [ split /\s*,\s*/, ($ENV{MAILTO} ? $ENV{MAILTO} : 'root') ];
 
-  my $rcpts   = $opt->{rcpt}
-             || [ split /\s*,\s*/, ($ENV{MAILTO} ? $ENV{MAILTO} : 'root') ];
-
-  my $host    = hostname_long;
-  my $sender  = $opt->{sender} || sprintf '%s@%s', ($ENV{USER}||'cron'), $host;
+  $host    = hostname_long;
+  $sender  = $opt->{sender} || sprintf '%s@%s', ($ENV{USER}||'cron'), $host;
 
   my $lockfile = sprintf '/tmp/cronjob.%s',
                  $opt->{jobname} || md5_hex($subject);
@@ -104,7 +113,7 @@ sub run {
 
     if ($send_mail) {
       send_cronjob_report({
-        is_fail => (! $waitpid{status}),
+        is_fail => (!! $waitpid{status}),
         waitpid => \%waitpid,
         time    => \(sprintf '%0.4f', $end - $start),
         output  => \$output,
