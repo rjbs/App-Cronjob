@@ -14,6 +14,16 @@ use Sys::Hostname::Long;
 use Text::Template;
 use Time::HiRes ();
 
+=head1 SEE INSTEAD
+
+This library, App::Cronjob, is not well documented.  Its internals may change
+substantially until such point as it is documented.
+
+Instead of using the library, you should run the program F<cronjob> that is
+installed along with the library.
+
+=cut
+
 my $TEMPLATE;
 
 my (
