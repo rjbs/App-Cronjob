@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          add prereq for IPC::Run3
           include a pointer, in the App::Cronjob docs, to the bin/cronjob app
 
 1.003     2009-04-21
