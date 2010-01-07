@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.100070  2010-01-07 14:30:09 America/New_York
           switch to Email::Sender::Simple
           improve locking: do not delete lockfile if we didn't lock
           (thanks to sungo and chargrill)
