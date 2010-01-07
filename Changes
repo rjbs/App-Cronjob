@@ -1,6 +1,9 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          switch to Email::Sender::Simple
+          improve locking: do not delete lockfile if we didn't lock
+          (thanks to sungo and chargrill)
 
 1.093480  2009-12-14 22:15:18 America/New_York
           add prereq for IPC::Run3
