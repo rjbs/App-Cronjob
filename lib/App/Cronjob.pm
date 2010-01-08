@@ -125,11 +125,19 @@ sub run {
     my $send_mail = ($waitpid{status} != 0)
                  || (length $output && ! $opt->{errors_only});
 
+    my $time_taken = sprintf '%0.4f', $end - $start;
+
+    $logger->log([
+      'job completed with status %s after %ss',
+      \%waitpid,
+      $time_taken,
+    ]);
+
     if ($send_mail) {
       send_cronjob_report({
         is_fail => (!! $waitpid{status}),
         waitpid => \%waitpid,
-        time    => \(sprintf '%0.4f', $end - $start),
+        time    => \$time_taken,
         output  => \$output,
       });
     }

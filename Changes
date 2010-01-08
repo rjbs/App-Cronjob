@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          syslog when job completes (requested by Bryan Allen)
 
 1.100070  2010-01-07 14:30:09 America/New_York
           switch to Email::Sender::Simple
