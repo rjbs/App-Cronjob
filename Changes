@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.100080  2010-01-08 08:30:52 America/New_York
           syslog when job completes (requested by Bryan Allen)
 
 1.100070  2010-01-07 14:30:09 America/New_York
