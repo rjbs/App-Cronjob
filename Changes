@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.101230  2010-05-03 17:32:03 America/New_York
           allow A-Z and _ in jobname (requested by AVAR
 
 1.100080  2010-01-08 08:30:52 America/New_York
