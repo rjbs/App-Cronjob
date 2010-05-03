@@ -65,7 +65,7 @@ sub run {
 
   my $okay = eval {
     die "illegal job name: $opt->{jobname}\n"
-      if $opt->{jobname} and $opt->{jobname} !~ m{\A[-a-z0-9]+\z};
+      if $opt->{jobname} and $opt->{jobname} !~ m{\A[-_A-Za-z0-9]+\z};
 
     my $logger  = Log::Dispatchouli->new({
       ident    => 'cronjob',

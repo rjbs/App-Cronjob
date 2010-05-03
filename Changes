@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          allow A-Z and _ in jobname (requested by AVAR
 
 1.100080  2010-01-08 08:30:52 America/New_York
           syslog when job completes (requested by Bryan Allen)
