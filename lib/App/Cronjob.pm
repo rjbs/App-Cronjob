@@ -22,6 +22,8 @@ substantially until such point as it is documented.
 Instead of using the library, you should run the program F<cronjob> that is
 installed along with the library.
 
+For a full description of the program's behavior, consult L<cronjob>.
+
 =cut
 
 my $TEMPLATE;
@@ -218,8 +220,6 @@ sub send_cronjob_report {
 }
 
 BEGIN {
-# Sure, a here-doc would be nicer, but PPI hates here-docs, I use PodPurler,
-# and PodPurler uses PPI.  Oh well. -- rjbs, 2009-04-21
 $TEMPLATE = <<'END_TEMPLATE'
 Command: { $command }
 Time   : { $time }s

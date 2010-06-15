@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+package
+  cronjob;
 # ABSTRACT: wrap up programs to be run as cron jobs
 
 use App::Cronjob;
 App::Cronjob->run;
-
-__END__
 
 =head1 SYNOPSIS
 
@@ -19,4 +19,67 @@ __END__
     -j --jobname          job name; used for locking, if given
     --ignore-errors       error types to ignore (like: lock)
     --lock                lock this job (defaults to true; --no-lock for off)
+
+=head1 DESCRIPTION
+
+F<cronjob> is a fairly simple Perl program that's meant to be used to wrap
+anything you want run from a F<crontab>.  It was originally written to cope
+with the highly deficient Solaris F<crond>, but now provides features that are
+useful even under relatively sane and otherwise tolerable cron daemons.
+
+The most important argument to F<cronjob> is C<--command> (aka C<-c>).  It
+gives the command to be run.  If you want to run F<some-maintenance-job> every
+day at noon, you might put this in your F<crontab>:
+
+  0 12 * * *           cronjob -c 'some-maintenance-job --xyzzy'
+
+Here's what will happen when that job is run:
+
+Unless you provided C<--no-lock>, an exclusive lock will be created on a
+temporary file in F</tmp>.  The locking process is described more
+L<below|/locking>.  Basically, it tries to prevent more than one of the same,
+or closely-related, jobs from running concurrently.
+
+The job will be run with no input.  Its combined STDOUT and STDERR are
+captured, along with its exit (wait) status.
+
+When the command has terminaed, a report is sent if:
+
+=for :list
+* the command couldn't lock (unless C<--ignore-errors lock>)
+* the command had any output (unless C<--errors-only>)
+* the command exited non-zero (always)
+
+The report will include a summary of the process and its behavior, including
+the time taken to run, the exit status, any signal received, and whether core
+was dumped.  It will also include the full (combined) output of the process.
+
+The report will be send from C<--sender> (or a reasonable default) to C<--rcpt>
+(or C<root>).  Its C<In-Reply-To> header will be set to a hashed value that
+will cause all same-subject jobs to thread together in threaded mail readers.
+The C<--subject> switch sets the message subject, so it's responsible for
+deciding which jobs thread together.  For jobs that run with variable
+arguments, providing a C<--subject> argument is a very good idea.
+
+=head2 locking
+
+The default lockfile name is generated with code something like this:
+
+  my $lockname = $opt->jobname || ( md5_sum( $opt->subject || $opt->command ) );
+  my $lockfile = sprintf '/tmp/cronjob.%s', $lockname;
+
+In other words, if you specify a C<--jobname> option, that will be used for
+naming the lockfile.  This lets you force otherwise unrelated cronjbos to block
+each other.  If you don't provide a job name, one is created by hashing the
+subject (of the report to send) or, failing that, the command itself.  The
+hashing is a simple measure to prevent long or metacharacter-ridden filenames.
+
+The lockfile will contain information about the process that has the lock,
+including when it was begun.
+
+By default, all job are locked and failure to acquire a lock causes immediate
+failure of the cronjob.  A failure report will be sent.  To suppress failure
+reports in the event of lock failure, pass C<--ignore-errors lock> to the
+command.  To skip locking, pass C<--no-lock>.
+
 
