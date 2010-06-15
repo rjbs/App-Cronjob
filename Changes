@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          added some more documentation to cronjob
 
 1.101230  2010-05-03 17:32:03 America/New_York
           allow A-Z and _ in jobname (requested by AVAR
