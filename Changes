@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          documentation typos fixed (thanks, chromatic)
 
 1.101660  2010-06-15 17:01:46 America/New_York
           added some more documentation to cronjob
