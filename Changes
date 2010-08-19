@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.102310  2010-08-19 12:40:51 America/New_York
           add an Auto-Submitted: auto-generated header (RFC 3834)
           documentation typos fixed (thanks, chromatic)
 
