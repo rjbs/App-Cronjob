@@ -207,6 +207,7 @@ sub send_cronjob_report {
       From    => qq{"cron/$host" <$sender>},
       Subject => $subject,
       'In-Reply-To' => $irt,
+      'Auto-Submitted' => 'auto-generated',
     ],
   );
 
