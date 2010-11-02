@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.102311  2010-11-02 17:09:23 America/New_York
           lockfile now includes cronjob's pid
           "can't locked, already locked" message now includes lockfile name
 
