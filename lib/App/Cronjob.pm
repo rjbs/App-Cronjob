@@ -82,7 +82,7 @@ sub run {
         if (my $mtime = (stat $lockfile)[9]) {
           my $stamp = scalar localtime $mtime;
           die App::Cronjob::Exception->new(
-            lock => "can't lock; locked since $stamp"
+            lock => "can't lock; $lockfile locked since $stamp"
           );
         } 
 
@@ -101,8 +101,8 @@ sub run {
 
     $got_lock = 1;
 
-    printf $lock_fh "running %s\nstarted at %s\n",
-      $opt->{command}, scalar localtime $^T;
+    printf $lock_fh "running %s\nstarted at %s\ncronjob process %s\n",
+      $opt->{command}, scalar localtime $^T, $$;
 
     LOCKED:
 
