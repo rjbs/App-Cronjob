@@ -1,6 +1,11 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+          locking is now done with flock, not O_CREAT|O_EXCL (much of this
+          work by Mark Jason Dominus)
+
+          there are now two error types: lockfile (can't create the file) and
+          lock (can't get a lock on it)
 
 1.102311  2010-11-02 17:09:23 America/New_York
           lockfile now includes cronjob's pid

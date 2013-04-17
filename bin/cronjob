@@ -81,3 +81,8 @@ By default, all jobs are locked and failure to acquire a lock causes immediate
 failure of the cronjob.  A failure report will be sent.  To suppress failure
 reports in the event of lock failure, pass C<--ignore-errors lock> to the
 command.  To skip locking, pass C<--no-lock>.
+
+Note that ignoring C<lock> failures only ignores failure to C<flock> the
+lockfile.  If the file can't even be created, an error will still be reported.
+It will be of type C<lockfile>, and can be ignored by adding another
+C<--ignore-errors> option for that type.
