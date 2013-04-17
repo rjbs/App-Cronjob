@@ -74,8 +74,9 @@ sub run {
       facility => 'cron',
     });
 
+    my $lock_fh;
     if ($opt->lock) {
-      sysopen my $lock_fh, $lockfile, O_CREAT|O_WRONLY
+      sysopen $lock_fh, $lockfile, O_CREAT|O_WRONLY
         or die App::Cronjob::Exception->new(
           lockfile => "couldn't open lockfile $lockfile: $!"
         );
