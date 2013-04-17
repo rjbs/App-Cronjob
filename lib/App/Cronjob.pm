@@ -5,9 +5,9 @@ package App::Cronjob;
 
 use Digest::MD5 qw(md5_hex);
 use Errno;
-use Fcntl;
+use Fcntl qw( :DEFAULT :flock );
 use Getopt::Long::Descriptive;
-use IPC::Run3 qw(run3);       
+use IPC::Run3 qw(run3);
 use Log::Dispatchouli;
 use String::Flogger;
 use Sys::Hostname::Long;
@@ -63,7 +63,7 @@ sub run {
   my $lockfile = sprintf '/tmp/cronjob.%s',
                  $opt->{jobname} || md5_hex($subject);
 
-  my $got_lock = 0;
+  my $got_lock;
 
   my $okay = eval {
     die "illegal job name: $opt->{jobname}\n"
@@ -74,37 +74,27 @@ sub run {
       facility => 'cron',
     });
 
-    goto LOCKED if ! $opt->{lock};
-
-    my $ok = sysopen my $lock_fh, $lockfile, O_CREAT|O_EXCL|O_WRONLY;
-    unless ($ok) {
-      if ($!{EEXIST}) {
-        if (my $mtime = (stat $lockfile)[9]) {
-          my $stamp = scalar localtime $mtime;
-          die App::Cronjob::Exception->new(
-            lock => "can't lock; $lockfile locked since $stamp"
-          );
-        } 
-
-        # We couldn't get mtime, presumably because the file got deleted
-        # between the EEXIST and the stat.  Stupid race conditions! -- rjbs,
-        # 2009-02-18
-        die App::Cronjob::Exception->new(
-          lock => "can't lock; was locked already"
+    if ($opt->lock) {
+      sysopen my $lock_fh, $lockfile, O_CREAT|O_WRONLY
+        or die App::Cronjob::Exception->new(
+          lockfile => "couldn't open lockfile $lockfile: $!"
         );
-      } else {
+
+      my $lock_flags = LOCK_EX | LOCK_NB;
+
+      unless (flock $lock_fh, $lock_flags) {
+        my $mtime = (stat $lock_fh)[9];
+        my $stamp = scalar localtime $mtime;
         die App::Cronjob::Exception->new(
-          lock => "couldn't open lockfile $lockfile: $!"
+          lock => "can't lock; locked since $stamp",
         );
       }
+
+      printf $lock_fh "running %s\nstarted at %s\n",
+        $opt->{command}, scalar localtime $^T;
+
+      $got_lock = 1;
     }
-
-    $got_lock = 1;
-
-    printf $lock_fh "running %s\nstarted at %s\ncronjob process %s\n",
-      $opt->{command}, scalar localtime $^T, $$;
-
-    LOCKED:
 
     $logger->log([ 'trying to run %s', $opt->{command} ]);
 
@@ -146,8 +136,6 @@ sub run {
 
     1;
   };
-
-  unlink $lockfile if $got_lock and -e $lockfile;
 
   exit 0 if $okay;
   my $err = $@;
