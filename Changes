@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.200000  2013-04-28 19:43:58 America/New_York
           locking is now done with flock, not O_CREAT|O_EXCL (much of this
           work by Mark Jason Dominus)
 
