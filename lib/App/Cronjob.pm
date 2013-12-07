@@ -72,6 +72,8 @@ sub run {
     my $logger  = Log::Dispatchouli->new({
       ident    => 'cronjob',
       facility => 'cron',
+      log_pid  => 0,
+      (defined $opt->{jobname} ? (prefix => "$opt->{jobname}: ") : ()),
     });
 
     my $lock_fh;

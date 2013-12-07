@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+        - do not log the pid to syslog; it should already be there
+        - if a jobname was given, use it as logging prefix
 
 1.200001  2013-06-19 21:56:28 America/New_York
           update bugtracker
