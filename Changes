@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+        - Process::Status is now used to interpret $?, making reports
+          more human-oriented and less computer-oriented
 
 1.200002  2013-12-07 08:52:23 America/New_York
         - do not log the pid to syslog; it should already be there

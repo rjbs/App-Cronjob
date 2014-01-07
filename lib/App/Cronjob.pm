@@ -9,6 +9,7 @@ use Fcntl qw( :DEFAULT :flock );
 use Getopt::Long::Descriptive;
 use IPC::Run3 qw(run3);
 use Log::Dispatchouli;
+use Process::Status 0.002;
 use String::Flogger;
 use Sys::Hostname::Long;
 use Text::Template;
@@ -108,30 +109,25 @@ sub run {
     $logger->log_fatal([ 'run3 failed to run command: %s', $@ ])
       unless eval { run3($opt->{command}, \undef, \$output, \$output); 1; };
 
-    my %waitpid = (
-      status => $?,
-      exit   => $? >> 8,
-      signal => $? & 127,
-      core   => $? & 128,
-    );
+    my $status = Process::Status->new;
 
     my $end = Time::HiRes::time;
 
-    my $send_mail = ($waitpid{status} != 0)
+    my $send_mail = ($status->exitstatus != 0)
                  || (length $output && ! $opt->{errors_only});
 
     my $time_taken = sprintf '%0.4f', $end - $start;
 
     $logger->log([
       'job completed with status %s after %ss',
-      \%waitpid,
+      $status->as_struct,
       $time_taken,
     ]);
 
     if ($send_mail) {
       send_cronjob_report({
-        is_fail => (!! $waitpid{status}),
-        waitpid => \%waitpid,
+        is_fail => (!! $status->exitstatus),
+        status  => $status,
         time    => \$time_taken,
         output  => \$output,
       });
@@ -170,7 +166,6 @@ sub run {
 
 sub send_cronjob_report {
   my ($arg) = @_;
-  my $waitpid = $arg->{waitpid} || { no_result => 'never ran' };
 
   require Email::Simple;
   require Email::Simple::Creator;
@@ -183,7 +178,7 @@ sub send_cronjob_report {
       command => \$opt->{command},
       output  => $arg->{output},
       time    => $arg->{time} || \'(n/a)',
-      waitpid => $waitpid,
+      status  => \($arg->{status} ? $arg->{status}->as_string : 'never ran'),
     },
   );
 
@@ -215,7 +210,7 @@ BEGIN {
 $TEMPLATE = <<'END_TEMPLATE'
 Command: { $command }
 Time   : { $time }s
-Status : { String::Flogger->flog([ '%s', \%waitpid ]) }
+Status : { $status }
 
 Output :
 
