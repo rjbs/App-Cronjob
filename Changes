@@ -2,6 +2,10 @@ Revision history for App-Cronjob
 
 {{$NEXT}}
 
+1.200004  2014-11-18 17:58:57-05:00 America/New_York
+        - --temp-ignore-lock-errors=3600 now lets you ignore lock errors
+          iff the lock is 1h old or less
+
 1.200003  2014-01-06 19:08:15 America/New_York
         - Process::Status is now used to interpret $?, making reports
           more human-oriented and less computer-oriented
