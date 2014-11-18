@@ -220,6 +220,7 @@ END_TEMPLATE
 
 {
   package App::Cronjob::Exception;
+
   sub new {
     my ($class, $type, $text) = @_;
     bless { text => $text, type => $type } => $class;
