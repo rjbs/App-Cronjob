@@ -17,8 +17,10 @@ App::Cronjob->run;
     -E --errors-only      do not send mail if exit code 0, even with output
     -f --sender           sender for message
     -j --jobname          job name; used for locking, if given
-    --ignore-errors       error types to ignore (like: lock)
     --lock                lock this job (defaults to true; --no-lock for off)
+    --ignore-errors       error types to ignore (like: lock)
+    --temp-ignore-lock-errors
+                          ignore locking errors, but only if the lock is at least this old
 
 =head1 DESCRIPTION
 
@@ -46,7 +48,9 @@ captured, along with its exit (wait) status.
 When the command has terminated, a report is sent if:
 
 =for :list
-* the command couldn't lock (unless C<--ignore-errors lock>)
+* the command couldn't lock (unless C<--ignore-errors lock> or,
+  if C<--temp-ignore-lock-errors=>I<secs> was given,
+  the lock was created no more than I<secs> seconds ago.
 * the command had any output (unless C<--errors-only>)
 * the command exited non-zero (always)
 

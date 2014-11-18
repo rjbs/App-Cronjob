@@ -48,12 +48,20 @@ sub run {
      [ 'sender|f=s',    'sender for message',                                ],
      [ 'jobname|j=s',   'job name; used for locking, if given'               ],
      [ 'ignore-errors=s@', 'error types to ignore (like: lock)'              ],
+     [ 'temp-ignore-lock-errors=i',
+                     'failure to lock only signals an error after this long' ],
      [ 'lock!',         'lock this job (defaults to true; --no-lock for off)',
                         { default => 1 }                                     ],
   );
 
   $subject = $opt->{subject} || $opt->{command};
   $subject =~ s{\A/\S+/([^/]+)(\s|$)}{$1$2} if $subject eq $opt->{command};
+
+  if (defined $opt->{temp_ignore_lock_errors}) {
+    if (grep {; $_ eq "lock" } @{$opt->{ignore_errors}}) {
+      die "--temp-ignore-lock-errors and --ignore-errors=lock are incompatible\n";
+    }
+  }
 
   $rcpts   = $opt->{rcpt}
           || [ split /\s*,\s*/, ($ENV{MAILTO} ? $ENV{MAILTO} : 'root') ];
@@ -91,6 +99,7 @@ sub run {
         my $stamp = scalar localtime $mtime;
         die App::Cronjob::Exception->new(
           lock => "can't lock; locked since $stamp",
+          { locked_since => $mtime },
         );
       }
 
@@ -143,6 +152,10 @@ sub run {
     unless (
       grep { $err->{type} and $_ eq $err->{type} } @{$opt->{ignore_errors}}
     ) {
+      if ($err->{type} eq "lock" && $opt->{temp_ignore_lock_errors}) {
+        my $age = time() - $err->{extra}{locked_since};
+        exit 0 if $age <= $opt->{temp_ignore_lock_errors};
+      }
       send_cronjob_report({
         is_fail => 1,
         output  => \$err->{text},
@@ -222,8 +235,8 @@ END_TEMPLATE
   package App::Cronjob::Exception;
 
   sub new {
-    my ($class, $type, $text) = @_;
-    bless { text => $text, type => $type } => $class;
+    my ($class, $type, $text, $extra) = @_;
+    bless { type => $type, text => $text, extra => $extra } => $class;
   }
 }
 
