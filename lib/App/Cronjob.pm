@@ -95,10 +95,11 @@ sub run {
       my $lock_flags = LOCK_EX | LOCK_NB;
 
       unless (flock $lock_fh, $lock_flags) {
+        my $error = $!;
         my $mtime = (stat $lock_fh)[9];
         my $stamp = scalar localtime $mtime;
         die App::Cronjob::Exception->new(
-          lock => "can't lock; locked since $stamp",
+          lock => "can't lock; $!; lockfile created $stamp",
           { locked_since => $mtime },
         );
       }
