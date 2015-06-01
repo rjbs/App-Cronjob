@@ -2,6 +2,9 @@ Revision history for App-Cronjob
 
 {{$NEXT}}
 
+1.200005  2015-06-01 13:37:07-04:00 America/New_York
+        - when flock fails, include $! in the error
+
 1.200004  2014-11-18 17:58:57-05:00 America/New_York
         - --temp-ignore-lock-errors=3600 now lets you ignore lock errors
           iff the lock is 1h old or less
