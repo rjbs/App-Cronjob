@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+        - when writing a lock file, put cronjob's pid in it
 
 1.200005  2015-06-01 13:37:07-04:00 America/New_York
         - when flock fails, include $! in the error

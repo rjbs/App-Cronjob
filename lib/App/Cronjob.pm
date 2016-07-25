@@ -104,8 +104,8 @@ sub run {
         );
       }
 
-      printf $lock_fh "running %s\nstarted at %s\n",
-        $opt->{command}, scalar localtime $^T;
+      printf $lock_fh "pid %s running %s\nstarted at %s\n",
+        $$, $opt->{command}, scalar localtime $^T;
 
       $got_lock = 1;
     }
