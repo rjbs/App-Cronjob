@@ -1,6 +1,8 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+
+1.200006  2016-07-25 16:39:18-04:00 America/New_York
         - when writing a lock file, put cronjob's pid in it
 
 1.200005  2015-06-01 13:37:07-04:00 America/New_York
