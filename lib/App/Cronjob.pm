@@ -115,9 +115,15 @@ sub run {
     my $start = Time::HiRes::time;
     my $output;
 
-    # XXX: does not throw proper exception
-    $logger->log_fatal([ 'run3 failed to run command: %s', $@ ])
-      unless eval { run3($opt->{command}, \undef, \$output, \$output); 1; };
+    my $ok = eval {
+      run3($opt->{command}, \undef, \$output, \$output);
+      1;
+    };
+
+    unless ($ok) {
+      # XXX: does not throw proper exception
+      $logger->log_fatal([ 'run3 failed to run command: %s', $@ ]);
+    }
 
     my $status = Process::Status->new;
 
