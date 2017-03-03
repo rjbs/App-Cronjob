@@ -47,6 +47,7 @@ sub run {
      [ 'errors-only|E', 'do not send mail if exit code 0, even with output', ],
      [ 'sender|f=s',    'sender for message',                                ],
      [ 'jobname|j=s',   'job name; used for locking, if given'               ],
+     [ 'timeout=i',     "fail if the child isn't completed within n seconds" ],
      [ 'ignore-errors=s@', 'error types to ignore (like: lock)'              ],
      [ 'temp-ignore-lock-errors=i',
                      'failure to lock only signals an error after this long' ],
@@ -116,7 +117,10 @@ sub run {
     my $output;
 
     my $ok = eval {
+      local $SIG{ALRM} = sub { die "command took too long to run" };
+      alarm($opt->timeout) if $opt->timeout;
       run3($opt->{command}, \undef, \$output, \$output);
+      alarm(0) if $opt->timeout;
       1;
     };
 
