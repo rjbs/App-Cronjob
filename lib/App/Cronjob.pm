@@ -73,6 +73,14 @@ sub run {
   my $lockfile = sprintf '/tmp/cronjob.%s',
                  $opt->{jobname} || md5_hex($subject);
 
+  unless ($opt->lock) {
+    # If we're not locking, we will still use this file for collecting the
+    # output of the cron job.  We need to make sure we won't clobber a parallel
+    # run of cronjob, since we're not locking.  Since no other job can have our
+    # pid while we're running, this is safe. -- rjbs, 2017-03-12
+    $lockfile .= ".$$";
+  }
+
   my $got_lock;
 
   my $okay = eval {
@@ -86,13 +94,12 @@ sub run {
       (defined $opt->{jobname} ? (prefix => "$opt->{jobname}: ") : ()),
     });
 
-    my $lock_fh;
-    if ($opt->lock) {
-      sysopen $lock_fh, $lockfile, O_CREAT|O_WRONLY
-        or die App::Cronjob::Exception->new(
-          lockfile => "couldn't open lockfile $lockfile: $!"
-        );
+    sysopen my $lock_fh, $lockfile, O_CREAT|O_RDWR
+      or die App::Cronjob::Exception->new(
+        lockfile => "couldn't open lockfile $lockfile: $!"
+      );
 
+    if ($opt->lock) {
       my $lock_flags = LOCK_EX | LOCK_NB;
 
       unless (flock $lock_fh, $lock_flags) {
@@ -105,21 +112,22 @@ sub run {
         );
       }
 
-      printf $lock_fh "pid %s running %s\nstarted at %s\n",
-        $$, $opt->{command}, scalar localtime $^T;
-
       $got_lock = 1;
     }
+
+    printf $lock_fh "pid %s running %s\nstarted at %s\n",
+      $$, $opt->{command}, scalar localtime $^T;
+
+    my $start_pos = tell $lock_fh;
 
     $logger->log([ 'trying to run %s', $opt->{command} ]);
 
     my $start = Time::HiRes::time;
-    my $output;
 
     my $ok = eval {
       local $SIG{ALRM} = sub { die "command took too long to run" };
       alarm($opt->timeout) if $opt->timeout;
-      run3($opt->{command}, \undef, \$output, \$output);
+      run3($opt->{command}, \undef, $lock_fh, $lock_fh);
       alarm(0) if $opt->timeout;
       1;
     };
@@ -134,7 +142,7 @@ sub run {
     my $end = Time::HiRes::time;
 
     my $send_mail = ($status->exitstatus != 0)
-                 || (length $output && ! $opt->{errors_only});
+                 || (tell $lock_fh != $start_pos && ! $opt->{errors_only});
 
     my $time_taken = sprintf '%0.4f', $end - $start;
 
@@ -145,6 +153,12 @@ sub run {
     ]);
 
     if ($send_mail) {
+      seek $lock_fh, 0, 0;
+
+      scalar <$lock_fh>; # read in and discard the header...
+      scalar <$lock_fh>; # ...which is two lines long
+      my $output = do { local $/; <$lock_fh> };
+
       send_cronjob_report({
         is_fail => (!! $status->exitstatus),
         status  => $status,
@@ -155,6 +169,10 @@ sub run {
 
     1;
   };
+
+  # We don't check this because it shouldn't matter at this point, although we
+  # don't want to leave gigantic log files sitting around...
+  unlink $lockfile;
 
   exit 0 if $okay;
   my $err = $@;
