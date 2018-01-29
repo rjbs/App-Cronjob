@@ -69,7 +69,9 @@ sub run {
   $host    = hostname_long;
   $sender  = $opt->{sender} || sprintf '%s@%s', ($ENV{USER}||'cron'), $host;
 
-  my $lockfile = sprintf '/tmp/cronjob.%s',
+  my $lockdir = $ENV{APP_CRONJOB_LOCKDIR} || '/tmp';
+
+  my $lockfile = sprintf $lockdir.'/cronjob.%s',
                  $opt->{jobname} || md5_hex($subject);
 
   my $got_lock;
