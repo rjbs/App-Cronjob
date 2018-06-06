@@ -17,6 +17,7 @@ App::Cronjob->run;
     -E --errors-only      do not send mail if exit code 0, even with output
     -f --sender           sender for message
     -j --jobname          job name; used for locking, if given
+    -o --output           append output to this file
     --lock                lock this job (defaults to true; --no-lock for off)
     --ignore-errors       error types to ignore (like: lock)
     --temp-ignore-lock-errors
