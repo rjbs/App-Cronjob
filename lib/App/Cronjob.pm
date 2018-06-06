@@ -48,6 +48,7 @@ sub run {
      [ 'sender|f=s',    'sender for message',                                ],
      [ 'jobname|j=s',   'job name; used for locking, if given'               ],
      [ 'timeout=i',     "fail if the child isn't completed within n seconds" ],
+     [ 'output|o=s',    'append output to this file'                         ],
      [ 'ignore-errors=s@', 'error types to ignore (like: lock)'              ],
      [ 'temp-ignore-lock-errors=i',
                      'failure to lock only signals an error after this long' ],
@@ -152,6 +153,19 @@ sub run {
         time    => \$time_taken,
         output  => \$output,
       });
+    }
+
+    if ($opt->{output}) {
+      open my $out_fh, '>>', $opt->{output};
+      unless ($out_fh) {
+        $logger->log([
+          "failed to open output file '%s' for append: %s",
+          $opt->{output},
+          $!,
+        ]);
+      }
+      print $out_fh $output;
+      close $out_fh;
     }
 
     1;
