@@ -14,7 +14,8 @@ App::Cronjob->run;
     -c --command          command to run (passed to ``)
     -s --subject          subject of mail to send (defaults to command)
     -r --rcpt             recipient of mail; may be given many times
-    -E --errors-only      do not send mail if exit code 0, even with output
+    -E --errors-only      do not send mail if exit code 0, even with any output
+    --ignore-stdout       do not send mail if exit code 0, even with only STDOUT output
     -f --sender           sender for message
     -j --jobname          job name; used for locking, if given
     --lock                lock this job (defaults to true; --no-lock for off)
@@ -51,6 +52,7 @@ When the command has terminated, a report is sent if:
 * the command couldn't lock (unless C<--ignore-errors lock> or,
   if C<--temp-ignore-lock-errors=>I<secs> was given,
   the lock was created no more than I<secs> seconds ago.
+* the command had only stderr output (if C<--ignore-stdout)
 * the command had any output (unless C<--errors-only>)
 * the command exited non-zero (always)
 

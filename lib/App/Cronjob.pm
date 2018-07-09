@@ -44,7 +44,8 @@ sub run {
      [ 'command|c=s',   'command to run (passed to ``)', { required => 1 }   ],
      [ 'subject|s=s',   'subject of mail to send (defaults to command)'      ],
      [ 'rcpt|r=s@',     'recipient of mail; may be given many times',        ],
-     [ 'errors-only|E', 'do not send mail if exit code 0, even with output', ],
+     [ 'errors-only|E', 'do not send mail if exit code 0, even with any output', ],
+     [ 'ignore-stdout', 'do not send mail if exit code 0, even with only STDOUT output' ],
      [ 'sender|f=s',    'sender for message',                                ],
      [ 'jobname|j=s',   'job name; used for locking, if given'               ],
      [ 'timeout=i',     "fail if the child isn't completed within n seconds" ],
@@ -54,6 +55,10 @@ sub run {
      [ 'lock!',         'lock this job (defaults to true; --no-lock for off)',
                         { default => 1 }                                     ],
   );
+
+  if ($opt->ignore_stdout && $opt->errors_only) {
+    die "--ignore-stdout and --errors-only don't make sense together\n";
+  }
 
   $subject = $opt->{subject} || $opt->{command};
   $subject =~ s{\A/\S+/([^/]+)(\s|$)}{$1$2} if $subject eq $opt->{command};
@@ -115,12 +120,26 @@ sub run {
     $logger->log([ 'trying to run %s', $opt->{command} ]);
 
     my $start = Time::HiRes::time;
-    my $output;
+    my ($output_stdout, $output_stderr, $output_combined);
+
+    my $stdout_cb = sub {
+      my ($line) = @_;
+
+      $output_stdout .= $line;
+      $output_combined .= $line;
+    };
+
+    my $stderr_cb = sub {
+      my ($line) = @_;
+
+      $output_stderr .= $line;
+      $output_combined .= $line;
+    };
 
     my $ok = eval {
       local $SIG{ALRM} = sub { die "command took too long to run" };
       alarm($opt->timeout) if $opt->timeout;
-      run3($opt->{command}, \undef, \$output, \$output);
+      run3($opt->{command}, \undef, $stdout_cb, $stderr_cb);
       alarm(0) if $opt->timeout;
       1;
     };
@@ -134,8 +153,16 @@ sub run {
 
     my $end = Time::HiRes::time;
 
-    my $send_mail = ($status->exitstatus != 0)
-                 || (length $output && ! $opt->{errors_only});
+    my $send_mail = $status->exitstatus != 0;
+
+    # success but we have output?
+    if (! $send_mail && length $output_combined) {
+      if ($opt->ignore_stdout) {
+        $send_mail = 1 if length $output_stderr;
+      } elsif (! $opt->errors_only) {
+        $send_mail = 1;
+      }
+    }
 
     my $time_taken = sprintf '%0.4f', $end - $start;
 
@@ -150,7 +177,7 @@ sub run {
         is_fail => (!! $status->exitstatus),
         status  => $status,
         time    => \$time_taken,
-        output  => \$output,
+        output  => \$output_combined,
       });
     }
 
