@@ -66,7 +66,7 @@ sub run {
   }
 
   my @extra_headers;
-  for my $entry (@{ $opt->{email_header} || [] }) {
+  for my $entry (@{ $opt->email_header || [] }) {
     my ($h, $v) = split /=/, $entry;
 
     lc $h eq $_ && die "You can't replace the $_ header!\n"
