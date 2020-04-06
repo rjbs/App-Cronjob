@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+        - make cronjob --help and perldoc cronjob agree
 
 1.200008  2020-03-09 15:48:21-04:00 America/New_York
         - new switch --email-headers to let you put extra headers in any
