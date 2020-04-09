@@ -1,6 +1,7 @@
 Revision history for App-Cronjob
 
 {{$NEXT}}
+        - fix bogus indenting in docs
 
 1.200009  2020-04-06 11:02:14-04:00 America/New_York
         - make cronjob --help and perldoc cronjob agree
