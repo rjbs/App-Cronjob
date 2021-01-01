@@ -84,21 +84,22 @@ sub run {
   $host    = hostname_long;
   $sender  = $opt->{sender} || sprintf '%s@%s', ($ENV{USER}||'cron'), $host;
 
-  my $lockfile = sprintf '%s/cronjob.%s',
-                 $ENV{APP_CRONJOB_LOCKDIR} || '/tmp',
-                 $opt->{jobname} || md5_hex($subject);
-
   my $got_lock;
 
   my $okay = eval {
     die "illegal job name: $opt->{jobname}\n"
       if $opt->{jobname} and $opt->{jobname} !~ m{\A[-_A-Za-z0-9]+\z};
 
+    my $job_id   = $opt->{jobname} || md5_hex($subject);
+    my $lockfile = sprintf '%s/cronjob.%s',
+                   $ENV{APP_CRONJOB_LOCKDIR} || '/tmp',
+                   $job_id;
+
     my $logger  = Log::Dispatchouli->new({
       ident    => 'cronjob',
       facility => 'cron',
-      log_pid  => 0,
-      (defined $opt->{jobname} ? (prefix => "$opt->{jobname}: ") : ()),
+      log_pid  => 1,
+      prefix   => "$job_id: ",
     });
 
     my $lock_fh;
